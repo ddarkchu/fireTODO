@@ -1,0 +1,3 @@
+{
+    "ignore" :["logs/","public/","views/","webpack/"]
+}
