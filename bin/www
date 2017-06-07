@@ -66,7 +66,3 @@ function onListening() {
 	var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
 	debug('Listening on ' + bind);
 }
-process.on('uncaughtException', function(err) {
-	//죽기 방지용 루틴.
-	console.error(err);
-});

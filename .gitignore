@@ -4,3 +4,4 @@ config/adminKey.json
 config/firebaseKey.js
 .project
 .settings
+log

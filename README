@@ -1,3 +1,14 @@
 config
 adminKey.json <= firebase-admin key file
-firebaseKey.js <= firebase web init 
+firebaseKey.js <= firebase web init
+
+
+TODO list
+function
+1. SignIn
+2. SignOut
+3. add TODO
+4. remove TODO
+5. modify TODO
+6. list Load.
+7. setting firebase database.
