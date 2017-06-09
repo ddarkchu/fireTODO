@@ -1,61 +1,151 @@
-var firebase = require('./firebase.js');
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyDjwSDDC7GU_-xaMusPd4I4Fbl7_4BTOmk",
-    authDomain: "mapboard-c8eba.firebaseapp.com",
-    databaseURL: "https://mapboard-c8eba.firebaseio.com",
-    projectId: "mapboard-c8eba",
-    storageBucket: "mapboard-c8eba.appspot.com",
-    messagingSenderId: "639968017275"
-};
-firebase.initializeApp(config);
-
-
-firebase.auth().onAuthStateChanged(function(user) {
-  if (user) {
-    console.log("login");
-  } else {
-    console.log("need login");
-    firebase.auth().signInWithEmailAndPassword("portars@naver.com","test123");
-    // firebase.auth().signInAnonymously().catch(function(error) {
-    //     // Handle Errors here.
-    //     var errorCode = error.code;
-    //     var errorMessage = error.message;
-    //     // ...
-    // });
-
-  }
-});
-
-var database = firebase.database();
-
-var arrayButton = document.querySelectorAll('button.refresh');
-for (var button of arrayButton) {
-    button.onclick = (e) => {
-        var iframe = e.target.parentElement.parentElement.querySelector('iframe');
-        if (iframe)
-            iframe.src = iframe.src;
-    }
+function hide(el) {
+	if(el) el.style.display = "none";
 }
 
+function show(el) {
+	if(el) el.style.display = "block";
+}
+// var database = firebase.database();
+var _q = (string) => {
+	return document.querySelector(string);
+}
+var _qs = (string) => {
+	return document.querySelectorAll(string);
+}
+// login("portars@naver.com","test123");
+function signIn(id, password) {
+	hide(_q('#signin_layout'));
+	if(!firebase.auth().currentUser) {
+		firebase.auth().signInWithEmailAndPassword(id, password).catch(function(error) {
+			console.log(error);
+			alert(error);
+			show(_q('#signin_layout'));
+		});
+	} else {
+		console.log("already login");
+	}
+}
 
+function signUp(id, password) {
+	hide(_q('#signup_layout'));
+	if(!firebase.auth().currentUser) {
+		firebase.auth().createUserWithEmailAndPassword(id, password).catch(function(error) {
+			console.log(error);
+			alert(error);
+			show(_q('#signup_layout'));
+		});
+	} else {
+		console.log("already login");
+	}
+}
 
-arrayButton = document.querySelectorAll('button.mode');
-for (var button of arrayButton) {
-    button.onclick = (e) => {
-        var div = e.target.parentElement.parentElement;
-        if (div.className.split(' ').indexOf('small') >= 0) {
-            div.className = "full";
-            e.target.textContent = "full";
-            for (var div2 of document.querySelectorAll('div.small:not(.hide)')) {
-                div2.className += " hide";
-            }
-        } else {
-            e.target.textContent = "small";
-            div.className = "small";
-            for (var div2 of document.querySelectorAll('div.small.hide')) {
-                div2.className = div2.className.replace(/[ |]hide/, "");
-            }
-        }
-    }
+function signOut() {
+	if(firebase.auth().currentUser) {
+		firebase.auth().signOut().catch(function(error) {
+			alert(error);
+			console.log(error);
+		});
+	} else {
+		console.log("already SignOut");
+	}
+}
+
+function validCheck(query) {
+	let result = false;
+	let list = _qs(query);
+	for(let item of list) {
+		for(temp of item.querySelectorAll('[valid]')) {
+			var reg = new RegExp(temp.getAttribute('valid'));
+			if(temp.value.match(reg) == null) {
+				temp.classList.add("valid_fail");
+				if(!result) result = true;
+			} else {
+				temp.classList.remove("valid_fail");
+			}
+		}
+	}
+	return result;
+}
+_q('#main_layout ._input_btn').onclick = (e) => {
+	let el_text = _q('#main_layout ._input');
+	let text = _q('#main_layout ._input').value;
+	if(text.trim() != "") {
+		var database = firebase.database();
+		if(database) {
+			database.ref("/").push(text).then((e) => {
+				el_text.value = "";
+				console.log("success", e)
+			}).catch((e) => {
+				console.log("error", e)
+			});
+		}
+	}
+}
+firebase.auth().onAuthStateChanged(function(user) {
+	if(user) {
+		hide(_q('#signin_layout'));
+		hide(_q('#signup_layout'));
+		show(_q('#sign_out'));
+		show(_q('#main_layout'));
+		let cell = _q('.data');
+		while(cell.hasChildNodes()) {
+			cell.removeChild(cell.firstChild);
+		}
+		console.log("login");
+		let table = firebase.database().ref('/');
+		let div = _q('#main_layout .data');
+		table.on('child_added', function(data) {
+			console.log("dataAdd")
+			let temp = document.createElement('div');
+			temp.classList.add(data.key);
+			temp.innerHTML = data.val();
+			div.append(temp);
+		});
+		table.on('child_changed', function(data) {
+			console.log(data.key)
+			let temp = div.querySelector('.' + data.key);
+			temp.innerHTML = data.val();
+		});
+		table.on('child_removed', function(data) {
+			_q('.' + data.key).remove();
+		});
+	} else {
+		show(_q('#signin_layout'));
+		hide(_q('#signup_layout'));
+		hide(_q('#sign_out'));
+		hide(_q('#main_layout'));
+		console.log("need login");
+	}
+	document.body.style.display = "block";
+});
+_q('#sign_out ._signout').onclick = (e) => {
+	e.preventDefault();
+	signOut();
+}
+_q('#signup_layout ._signup').onclick = (e) => {
+	e.preventDefault();
+	validCheck('#signup_layout');
+	let els = _qs('#signup_layout .valid_fail');
+	if(els.length == 0) {
+		let id = _q('#signup_layout ._user_id').value;
+		let pw = _q('#signup_layout ._user_password').value;
+		signUp(id, pw);
+	}
+}
+_q('#signin_layout ._signin').onclick = (e) => {
+	e.preventDefault();
+	validCheck('#signin_layout');
+	let els = _qs('#signin_layout .valid_fail');
+	if(els.length == 0) {
+		let id = _q('#signin_layout ._user_id').value;
+		let pw = _q('#signin_layout ._user_password').value;
+		signIn(id, pw);
+	}
+}
+_q('#signin_layout ._signup').onclick = (e) => {
+	e.preventDefault();
+	hide(_q('#signin_layout'));
+	show(_q('#signup_layout'));
+	hide(_q('#sign_out'));
+	hide(_q('#main_layout'));
 }
