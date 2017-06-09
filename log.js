@@ -30,4 +30,4 @@ wins.stream = {
         wins.info(message);
     }
 };
-exports = wins;
+module.exports = wins;

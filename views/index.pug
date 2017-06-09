@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  #signin_layout
+  #signin_layout.js_layout
     div
       div
         label SignIn
@@ -10,20 +10,20 @@ block content
         input._user_password(type="password" placeholder="password" valid=".+")
         input._signin(type="button" value="signIn")
         input._signup(type="button" value="signUp")
-  #signup_layout
+  #signup_layout.js_layout
     div: label SignUp
     div: input._user_id(type="email" placeholder="user@email.com")
     div: input._user_password(type="password" placeholder="password")
     div: input._signup(type="button" value="signUp")
-  #sign_out
-    div
+
+  #main_layout.js_layout
+    #sign_out
       div: input._signout(type="button" value="signOut")
-  #main_layout
     div
       div.data
       div
         input._input(type="text" placeholder="text")
         button._input_btn talk
-        
+
   script
     include ../webpack/firebase.js
